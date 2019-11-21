@@ -15,8 +15,11 @@ use Illuminate\Http\Request;
 
 Route::group(['middleware' => "auth:api"], function() {
 	Route::resource('post', 'PostController');
+	Route::get('exportpost', 'ExportImportController@export');
 });
 
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout');
+route::post('passwordupdate', 'Auth\LoginController@passwordupdate')->name('passwordupdate');
+Route::post('existemail', 'Auth\LoginController@existemail');
 Route::post('register', 'Auth\RegisterController@register');

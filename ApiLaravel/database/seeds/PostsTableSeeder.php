@@ -14,11 +14,12 @@ class PostsTableSeeder extends Seeder
     public function run()
     {
     	$faker = Faker::create();
-        for($i = 1;$i <= 20;$i++) {
+        for($i = 1;$i <= 6;$i++) {
         	DB::table('post')->insert([
         		"title" => "title ".$i,
         		"description" => $faker->text,
         		"category" => 'teknologi',
+                'user_id' => 1,
         	]);
         }
     }

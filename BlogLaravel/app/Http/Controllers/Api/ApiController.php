@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use GuzzleHttp\Client;
+
+use App\Model\User;
+use App\Mail\SendResetPassword;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 use App\Http\Controllers\Controller;
 
 class ApiController extends Controller
 {
-	
-
     public function login(Request $request)
     {
     	
@@ -26,6 +28,7 @@ class ApiController extends Controller
 	    	if($bodyDecode->code != 401) {
 	    		$request->session()->put('token', $bodyDecode->token);
                 $request->session()->put('id', $bodyDecode->id);
+                $request->session()->put('name', $bodyDecode->name);
 	    		return redirect()->route('apiIndex')->withHeaders([
 	    				"Authorization" => "Bearer ".$bodyDecode->token,
 	    			]);
@@ -44,7 +47,7 @@ class ApiController extends Controller
     		]
     	]);
 	    $response = $client->request('GET', 'http://apilaravel.test/api/post');
-	    $body = $response->getBody()->getContents();
+         $body = $response->getBody()->getContents();
 	    return view('home', ['posts' => json_decode($body)]);
     }
 
@@ -146,4 +149,48 @@ class ApiController extends Controller
             return redirect()->route('index');
         }
     }
+
+    public function existemail(Request $request)
+    {
+        $client = new Client();
+        $response = $client->request("POST", 'http://apilaravel.test/api/existemail', [
+            'form_params' => [
+                'email' => $request->email
+            ],
+        ]);
+        $jsonDecode = json_decode($response->getBody()->getContents());
+        Mail::to('admin_api@email.com')->send(new SendResetPassword($jsonDecode));
+        return redirect()->route('index');
+    }
+
+    public function viewpassword(Request $request, $id)
+    {
+        $user = User::find($id);
+        if($user) {
+            return view('auth.passwords.reset');
+        }else {
+            return redirect()->back()->withErrors(['ID is not found']);
+        }
+        
+    }
+
+    public function updatepassword(Request $request)
+    {
+        $client = new Client();
+        $response = $client->request("POST", 'http://apilaravel.test/api/passwordupdate', [
+            'form_params' => [
+                'email' => $request->email,
+                'password' => $request->password,
+                'password_confirmation' => $request->password_confirmation
+            ],
+        ]);
+        $body = json_decode($response->getBody()->getContents());
+        if($body->code == 401) {
+            return redirect()->back()->withErrors([$body->status]);
+        }else {
+            return redirect()->route('index');
+        }
+    }
+
+
 }

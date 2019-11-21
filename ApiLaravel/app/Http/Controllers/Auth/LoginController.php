@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Model\User;
+use App\Mail\SendForgotPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -48,9 +52,34 @@ class LoginController extends Controller
                 'token' => $token,
                 'code' => 200,
                 'id' => Auth::user()->id,
+                'name' => Auth::user()->name,
             ]);
         }else {
             return response()->json(['status' => "Username or Password doesnt match", 'code' => 401]);
+        }
+    }
+
+    public function existemail(Request $request)
+    {
+        if(empty($request->email)) {
+            return response()->json(['status' => 'Data is empty']);    
+        }else {
+            $user = User::where('email', $request->email)->get();
+            return response()->json(['status' => 'Email is received, please check it', 'user' =>  $user[0]]);
+        }
+        
+    }
+
+    public function passwordupdate(Request $request)
+    {
+        if($request->password == $request->password_confirmation) {
+            User::where('email', $request->email)->update([
+                'password' => Hash::make($request->password),
+            ]);
+
+            return response()->json(['status' => "Password is changed", 'code' => 200]);
+        }else {
+            return response()->json(['status' => "Password is not same", 'code' => 401]);
         }
     }
 
