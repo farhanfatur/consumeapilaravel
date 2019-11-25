@@ -22,7 +22,7 @@ class ExportImportController extends Controller
         $response = $client->request('GET', 'http://apilaravel.test/api/post');
         $body = json_decode($response->getBody()->getContents());
 
-        return Excel::download(new PostExport($body), 'export-post.xlsx');
+        return Excel::download(new PostExport($body), $request->session()->get('name').'-export-post.xlsx');
     }
 
     public function importexcel(Request $request)
